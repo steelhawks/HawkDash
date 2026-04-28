@@ -1,5 +1,5 @@
-import { el, fmt, fmtInt, fmtPct, statCard, panel, viewHeader, chartBox, kvGrid } from "../ui.js";
-import { timeChart, boolStrip, chartPalette } from "../charts.js";
+import { el, fmt, fmtInt, fmtPct, statCard, panel, viewHeader, chartBox, kvGrid } from "../ui.js?v=7";
+import { timeChart, boolStrip, chartPalette } from "../charts.js?v=7";
 
 // Discover Vision/{name}/Connected entries (case-insensitive). The robot uses
 // camera names like "ardu-back-left", "ardu-front-right", etc.

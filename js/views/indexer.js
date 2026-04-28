@@ -1,5 +1,5 @@
-import { el, fmtPct, statCard, panel, viewHeader, chartBox } from "../ui.js";
-import { timeChart, boolStrip } from "../charts.js";
+import { el, fmtPct, statCard, panel, viewHeader, chartBox } from "../ui.js?v=7";
+import { timeChart, boolStrip } from "../charts.js?v=7";
 
 export function render(container, store) {
     const root = el("div");

@@ -1,5 +1,5 @@
-import { el, fmt, fmtInt, statCard, panel, viewHeader, chartBox, bar } from "../ui.js";
-import { timeChart, alignSeries, chartPalette } from "../charts.js";
+import { el, fmt, fmtInt, statCard, panel, viewHeader, chartBox, bar } from "../ui.js?v=7";
+import { timeChart, alignSeries, chartPalette } from "../charts.js?v=7";
 
 // The Rebuilt2026 robot uses BatteryUtil (org.steelhawks.util.BatteryUtil) to
 // sum every motor's supply current at runtime and integrate amp-hours / watt-hours.

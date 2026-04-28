@@ -1,4 +1,4 @@
-import { el, fmtInt, statCard, panel, viewHeader, fmt } from "../ui.js";
+import { el, fmtInt, statCard, panel, viewHeader, fmt } from "../ui.js?v=7";
 
 // AdvantageKit's Alert system publishes one group per Alert.AlertsContainer with
 // three string[] entries: errors / warnings / infos. Robots usually have several

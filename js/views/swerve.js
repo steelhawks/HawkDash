@@ -1,5 +1,5 @@
-import { el, fmt, fmtPct, statCard, panel, viewHeader, chartBox } from "../ui.js";
-import { timeChart, boolStrip, chartPalette } from "../charts.js";
+import { el, fmt, fmtPct, statCard, panel, viewHeader, chartBox } from "../ui.js?v=7";
+import { timeChart, boolStrip, chartPalette } from "../charts.js?v=7";
 
 const MODULES = [0, 1, 2, 3];
 

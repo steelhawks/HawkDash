@@ -1,5 +1,5 @@
-import { el, fmt, fmtInt, fmtPct, statCard, panel, viewHeader, chartBox } from "../ui.js";
-import { timeChart, boolStrip } from "../charts.js";
+import { el, fmt, fmtInt, fmtPct, statCard, panel, viewHeader, chartBox } from "../ui.js?v=7";
+import { timeChart, boolStrip } from "../charts.js?v=7";
 
 // Note: Real Rebuilt2026 logs use /SystemStats/CPUTempCelsius (not CpuTemp),
 // /SystemStats/CANBus/Utilization (not CanBusUtilization), /SystemStats/BatteryVoltage,
@@ -50,18 +50,18 @@ export function render(container, store) {
     root.appendChild(stats);
 
     if (cpu) {
-        const p = panel("CPU temperature", "Celsius");
+        const p = panel("CPU temperature", "Celsius · drag to zoom · click ‘full range’ to disable outlier clip");
         const box = chartBox();
         p.appendChild(box);
-        timeChart(box, [{ timestamps: cpu.timestamps, values: cpu.values, label: "CPU", color: "#ef4444" }], { yLabel: "°C" });
+        timeChart(box, [{ timestamps: cpu.timestamps, values: cpu.values, label: "CPU", color: "#ef4444" }], { yLabel: "°C", robust: true });
         root.appendChild(p);
     }
 
     if (canUtil) {
-        const p = panel("CAN bus utilization", "Fraction (0-1)");
+        const p = panel("CAN bus utilization", "Fraction (0-1) · clipped to p1..p99 so the startup spike doesn’t flatten the rest");
         const box = chartBox();
         p.appendChild(box);
-        timeChart(box, [{ timestamps: canUtil.timestamps, values: canUtil.values, label: "Utilization", color: "#60a5fa" }], { yRange: [0, 1] });
+        timeChart(box, [{ timestamps: canUtil.timestamps, values: canUtil.values, label: "Utilization", color: "#60a5fa" }], { robust: true });
         root.appendChild(p);
     }
 
@@ -69,7 +69,7 @@ export function render(container, store) {
         const p = panel(ramFree.name.includes("FreeMB") ? "RAM free (MB)" : "RAM usage", "");
         const box = chartBox();
         p.appendChild(box);
-        timeChart(box, [{ timestamps: ramFree.timestamps, values: ramFree.values, label: "RAM", color: "#3ecf8e" }], { yLabel: "MB" });
+        timeChart(box, [{ timestamps: ramFree.timestamps, values: ramFree.values, label: "RAM", color: "#3ecf8e" }], { yLabel: "MB", robust: true });
         root.appendChild(p);
     }
 
@@ -100,10 +100,10 @@ export function render(container, store) {
 
     // Loop cycle time.
     if (cycle) {
-        const p = panel("Logger cycle time", "/RealOutputs/LoggedRobot/FullCycleMS");
+        const p = panel("Logger cycle time", "/RealOutputs/LoggedRobot/FullCycleMS · the first cycle is huge during init; clipped by default");
         const box = chartBox();
         p.appendChild(box);
-        timeChart(box, [{ timestamps: cycle.timestamps, values: cycle.values, label: "Cycle", color: "#ff7a00" }], { yLabel: "ms" });
+        timeChart(box, [{ timestamps: cycle.timestamps, values: cycle.values, label: "Cycle", color: "#ff7a00" }], { yLabel: "ms", robust: true });
         root.appendChild(p);
     }
 

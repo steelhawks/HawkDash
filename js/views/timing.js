@@ -1,5 +1,5 @@
-import { el, fmt, panel, viewHeader, chartBox, bar } from "../ui.js";
-import { timeChart, chartPalette } from "../charts.js";
+import { el, fmt, panel, viewHeader, chartBox, bar } from "../ui.js?v=7";
+import { timeChart, chartPalette } from "../charts.js?v=7";
 
 function loopTimeEntries(store) {
     // Custom: /RealOutputs/LoopTimes/{subsystem}ms
@@ -36,13 +36,13 @@ export function render(container, store) {
 
     const ltes = loopTimeEntries(store);
     if (ltes.length) {
-        const p = panel("LoopTimeUtil per-subsystem", `${ltes.length} subsystems · time spent in periodic() (ms)`);
+        const p = panel("LoopTimeUtil per-subsystem", `${ltes.length} subsystems · clipped to p1..p99 so init spikes don’t crush the chart`);
         const box = chartBox({ tall: true });
         p.appendChild(box);
         const seriesList = ltes.map(({ name, entry }, i) => ({
             timestamps: entry.timestamps, values: entry.values, label: name, color: chartPalette[i % chartPalette.length],
         }));
-        timeChart(box, seriesList, { yLabel: "ms" });
+        timeChart(box, seriesList, { yLabel: "ms", robust: true });
 
         // Top peaks ranking.
         const ranked = ltes.map(({ name, entry }) => ({
@@ -62,10 +62,10 @@ export function render(container, store) {
     // AdvantageKit cycle time.
     const cycles = akSubsystemPeriodics(store);
     for (const c of cycles) {
-        const p = panel(c.name, "AdvantageKit cycle timing");
+        const p = panel(c.name, "AdvantageKit cycle timing · clipped to p1..p99");
         const box = chartBox();
         p.appendChild(box);
-        timeChart(box, [{ timestamps: c.timestamps, values: c.values, label: c.name, color: "#ff7a00" }], { yLabel: "ms" });
+        timeChart(box, [{ timestamps: c.timestamps, values: c.values, label: c.name, color: "#ff7a00" }], { yLabel: "ms", robust: true });
         root.appendChild(p);
     }
 

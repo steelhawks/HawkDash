@@ -1,16 +1,16 @@
-import { parseWpilog } from "./wpilog.js";
-import { LogStore } from "./store.js";
+import { parseWpilog } from "./wpilog.js?v=6";
+import { LogStore } from "./store.js?v=6";
 
-import * as overview from "./views/overview.js";
-import * as power from "./views/power.js";
-import * as vision from "./views/vision.js";
-import * as shooter from "./views/shooter.js";
-import * as intake from "./views/intake.js";
-import * as indexer from "./views/indexer.js";
-import * as swerve from "./views/swerve.js";
-import * as alerts from "./views/alerts.js";
-import * as system from "./views/system.js";
-import * as timing from "./views/timing.js";
+import * as overview from "./views/overview.js?v=6";
+import * as power from "./views/power.js?v=6";
+import * as vision from "./views/vision.js?v=6";
+import * as shooter from "./views/shooter.js?v=6";
+import * as intake from "./views/intake.js?v=6";
+import * as indexer from "./views/indexer.js?v=6";
+import * as swerve from "./views/swerve.js?v=6";
+import * as alerts from "./views/alerts.js?v=6";
+import * as system from "./views/system.js?v=6";
+import * as timing from "./views/timing.js?v=6";
 
 const VIEWS = [overview, power, vision, shooter, intake, indexer, swerve, alerts, system, timing];
 

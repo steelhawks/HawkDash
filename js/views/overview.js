@@ -1,5 +1,5 @@
-import { el, fmt, fmtInt, fmtPct, fmtTime, statCard, panel, viewHeader, kvGrid, chartBox } from "../ui.js";
-import { entryChart, timeChart } from "../charts.js";
+import { el, fmt, fmtInt, fmtPct, fmtTime, statCard, panel, viewHeader, kvGrid, chartBox } from "../ui.js?v=7";
+import { entryChart, timeChart } from "../charts.js?v=7";
 
 function modeFromDS(store) {
     const enabled = store.get("/DriverStation/Enabled");

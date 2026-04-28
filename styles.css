@@ -416,6 +416,61 @@ html, body {
     height: 140px;
 }
 
+.chart-range-btn {
+    position: absolute;
+    top: 4px;
+    z-index: 5;
+    background: var(--bg-elev-2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-family: var(--mono);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.chart-reset-btn {
+    right: 4px;
+}
+
+.chart-range-toggle {
+    right: 76px;
+}
+
+.chart-range-btn:hover {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.chart-help {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    z-index: 5;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg-elev-2);
+    color: var(--text-mute);
+    border: 1px solid var(--border);
+    text-align: center;
+    line-height: 16px;
+    font-size: 11px;
+    font-family: var(--mono);
+    cursor: help;
+    opacity: 0.55;
+}
+
+.chart-help:hover {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
 .legend-row {
     display: flex;
     flex-wrap: wrap;
