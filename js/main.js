@@ -30,6 +30,13 @@ const entryCountFooter = document.getElementById("entry-count");
 let currentStore = null;
 let currentViewId = null;
 
+// `hidden` attribute can lose to custom display rules; force it via inline style.
+function show(el) { el.style.display = ""; el.removeAttribute("hidden"); }
+function hide(el) { el.style.display = "none"; el.setAttribute("hidden", ""); }
+hide(loading);
+hide(dashboard);
+hide(closeBtn);
+
 openBtn.addEventListener("click", () => fileInput.click());
 browseBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", (e) => {
@@ -55,9 +62,9 @@ window.addEventListener("dragover", (e) => e.preventDefault());
 window.addEventListener("drop", (e) => e.preventDefault());
 
 async function loadFile(file) {
-    dropzone.hidden = true;
-    dashboard.hidden = true;
-    loading.hidden = false;
+    hide(dropzone);
+    hide(dashboard);
+    show(loading);
     loadingStatus.textContent = `Reading ${file.name}…`;
     try {
         const buffer = await file.arrayBuffer();
@@ -70,12 +77,12 @@ async function loadFile(file) {
         renderHeader(file, parsed);
         renderNav();
         showView(VIEWS[0].meta.id);
-        loading.hidden = true;
-        dashboard.hidden = false;
-        closeBtn.hidden = false;
+        hide(loading);
+        show(dashboard);
+        show(closeBtn);
     } catch (err) {
-        loading.hidden = true;
-        dropzone.hidden = false;
+        hide(loading);
+        show(dropzone);
         alert("Failed to parse log: " + err.message);
         console.error(err);
     }
@@ -166,9 +173,9 @@ function reset() {
     entryCountFooter.textContent = "";
     viewContainer.innerHTML = "";
     nav.innerHTML = "";
-    closeBtn.hidden = true;
-    dashboard.hidden = true;
-    dropzone.hidden = false;
+    hide(closeBtn);
+    hide(dashboard);
+    show(dropzone);
     fileInput.value = "";
 }
 

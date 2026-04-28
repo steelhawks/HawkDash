@@ -41,6 +41,11 @@ html, body {
     overflow: hidden;
 }
 
+/* The HTML `hidden` attribute must beat custom display rules below. */
+[hidden] {
+    display: none !important;
+}
+
 #app {
     display: flex;
     flex-direction: column;
