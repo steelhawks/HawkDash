@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HawkDash · Rebuilt2026 Log Analyzer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.30/dist/uPlot.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <div class="brand">
+                <span class="logo">⚡</span>
+                <div>
+                    <h1>HawkDash</h1>
+                    <p class="tagline">Rebuilt2026 · AdvantageKit log analyzer</p>
+                </div>
+            </div>
+            <div class="header-meta" id="header-meta">
+                <span class="empty">No log loaded</span>
+            </div>
+            <div class="header-actions">
+                <input type="file" id="file-input" accept=".wpilog" hidden>
+                <button id="open-btn" class="btn">Open .wpilog</button>
+                <button id="close-btn" class="btn ghost" hidden>Close</button>
+            </div>
+        </header>
+
+        <main id="main">
+            <section id="dropzone" class="dropzone">
+                <div class="dropzone-inner">
+                    <div class="dropzone-icon">📈</div>
+                    <h2>Drop a <code>.wpilog</code> here</h2>
+                    <p>Or <button class="link" id="browse-btn">click to browse</button>.</p>
+                    <p class="hint">Files are parsed locally in your browser — nothing is uploaded.</p>
+                </div>
+            </section>
+
+            <section id="loading" class="loading" hidden>
+                <div class="spinner"></div>
+                <p id="loading-status">Parsing log…</p>
+            </section>
+
+            <section id="dashboard" class="dashboard" hidden>
+                <aside class="sidebar">
+                    <nav id="nav"></nav>
+                </aside>
+                <section class="view-container" id="view-container"></section>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <span>SteelHawks · Rebuilt2026</span>
+            <span id="entry-count"></span>
+        </footer>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
