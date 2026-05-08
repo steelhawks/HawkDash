@@ -106,11 +106,13 @@ export async function deleteLog(row) {
 }
 
 export async function downloadLogBlob(storagePath) {
-    const c = getClient();
-    if (!c) throw new Error("Supabase not configured");
-    const { data, error } = await c.storage.from(STORAGE_BUCKET).download(storagePath);
-    if (error) throw error;
-    return data;
+    // The bucket is public, so a plain fetch on the public URL avoids the
+    // authed storage endpoint (which can trip CORS preflight in some browsers).
+    const url = getPublicUrl(storagePath);
+    if (!url) throw new Error("Supabase not configured");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
+    return await res.blob();
 }
 
 export function getPublicUrl(storagePath) {

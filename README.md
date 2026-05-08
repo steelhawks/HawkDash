@@ -75,7 +75,7 @@ create policy "wpilogs delete" on storage.objects
 In **SQL Editor** → **New query**, run:
 
 ```sql
-create table public.logs (
+create table if not exists public.logs (
     id           uuid        primary key default gen_random_uuid(),
     sha256       text        not null unique,
     file_name    text        not null,
@@ -86,10 +86,15 @@ create table public.logs (
     uploaded_at  timestamptz not null default now()
 );
 
-create index logs_event_tag_idx on public.logs (event_tag);
-create index logs_uploaded_at_idx on public.logs (uploaded_at desc);
+create index if not exists logs_event_tag_idx on public.logs (event_tag);
+create index if not exists logs_uploaded_at_idx on public.logs (uploaded_at desc);
 
 alter table public.logs enable row level security;
+
+drop policy if exists "logs read"   on public.logs;
+drop policy if exists "logs insert" on public.logs;
+drop policy if exists "logs update" on public.logs;
+drop policy if exists "logs delete" on public.logs;
 
 create policy "logs read"   on public.logs for select using (true);
 create policy "logs insert" on public.logs for insert with check (true);

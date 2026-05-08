@@ -4,7 +4,7 @@ import {
     getPublicUrl,
     deleteLog,
     isReady,
-} from "./supabase.js?v=1";
+} from "./supabase.js?v=2";
 import { PRESET_EVENT_TAGS } from "./config.js?v=1";
 
 let modal = null;

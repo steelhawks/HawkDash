@@ -6,8 +6,8 @@ import {
     findBySha256,
     uploadLog,
     updateEventTag,
-} from "./supabase.js?v=1";
-import * as library from "./library.js?v=1";
+} from "./supabase.js?v=2";
+import * as library from "./library.js?v=2";
 import { DEFAULT_EVENT_TAG, PRESET_EVENT_TAGS, isConfigured } from "./config.js?v=1";
 
 import * as overview from "./views/overview.js?v=6";
