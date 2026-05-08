@@ -1,5 +1,14 @@
 import { parseWpilog } from "./wpilog.js?v=6";
 import { LogStore } from "./store.js?v=6";
+import { sha256Hex } from "./hash.js?v=1";
+import {
+    isReady as supabaseReady,
+    findBySha256,
+    uploadLog,
+    updateEventTag,
+} from "./supabase.js?v=1";
+import * as library from "./library.js?v=1";
+import { DEFAULT_EVENT_TAG, PRESET_EVENT_TAGS, isConfigured } from "./config.js?v=1";
 
 import * as overview from "./views/overview.js?v=6";
 import * as power from "./views/power.js?v=6";
@@ -23,6 +32,8 @@ const fileInput = document.getElementById("file-input");
 const openBtn = document.getElementById("open-btn");
 const browseBtn = document.getElementById("browse-btn");
 const closeBtn = document.getElementById("close-btn");
+const libraryBtn = document.getElementById("library-btn");
+const banner = document.getElementById("library-banner");
 const nav = document.getElementById("nav");
 const viewContainer = document.getElementById("view-container");
 const entryCountFooter = document.getElementById("entry-count");
@@ -31,11 +42,14 @@ let currentStore = null;
 let currentViewId = null;
 
 // `hidden` attribute can lose to custom display rules; force it via inline style.
-function show(el) { el.style.display = ""; el.removeAttribute("hidden"); }
-function hide(el) { el.style.display = "none"; el.setAttribute("hidden", ""); }
+function show(el) { if (!el) return; el.style.display = ""; el.removeAttribute("hidden"); }
+function hide(el) { if (!el) return; el.style.display = "none"; el.setAttribute("hidden", ""); }
 hide(loading);
 hide(dashboard);
 hide(closeBtn);
+hide(banner);
+
+library.init();
 
 openBtn.addEventListener("click", () => fileInput.click());
 browseBtn.addEventListener("click", () => fileInput.click());
@@ -45,6 +59,13 @@ fileInput.addEventListener("change", (e) => {
 });
 
 closeBtn.addEventListener("click", reset);
+
+if (libraryBtn) {
+    if (!isConfigured()) {
+        libraryBtn.title = "Supabase not configured — see README";
+    }
+    libraryBtn.addEventListener("click", () => library.open(loadFile));
+}
 
 ["dragenter", "dragover"].forEach(ev =>
     dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); })
@@ -61,15 +82,16 @@ dropzone.addEventListener("drop", (e) => {
 window.addEventListener("dragover", (e) => e.preventDefault());
 window.addEventListener("drop", (e) => e.preventDefault());
 
-async function loadFile(file) {
+async function loadFile(file, opts = {}) {
+    const { skipUpload = false, knownRow = null } = opts;
     hide(dropzone);
     hide(dashboard);
+    hide(banner);
     show(loading);
     loadingStatus.textContent = `Reading ${file.name}…`;
     try {
         const buffer = await file.arrayBuffer();
         loadingStatus.textContent = `Parsing ${file.name}…`;
-        // Yield to the event loop so the UI shows the status.
         await new Promise(r => setTimeout(r, 16));
         const parsed = parseWpilog(buffer);
         parsed.fileName = file.name;
@@ -80,12 +102,183 @@ async function loadFile(file) {
         hide(loading);
         show(dashboard);
         show(closeBtn);
+
+        if (supabaseReady()) {
+            // Compute hash and reconcile with the library in the background so
+            // the dashboard renders immediately.
+            syncLibrary(file, buffer, parsed, { skipUpload, knownRow }).catch((err) => {
+                console.error("Library sync failed:", err);
+                renderBanner({ kind: "error", message: err.message || String(err) });
+            });
+        } else {
+            // Soft hint so contributors notice the feature exists.
+            renderBanner({ kind: "info", message: "Supabase not configured — log was not saved to the library." });
+        }
     } catch (err) {
         hide(loading);
         show(dropzone);
         alert("Failed to parse log: " + err.message);
         console.error(err);
     }
+}
+
+async function syncLibrary(file, buffer, parsed, { skipUpload, knownRow }) {
+    if (knownRow) {
+        renderBanner({ kind: "exists", row: knownRow });
+        return;
+    }
+
+    renderBanner({ kind: "working", message: "Hashing…" });
+    const hash = await sha256Hex(buffer);
+
+    renderBanner({ kind: "working", message: "Checking library…" });
+    let row = await findBySha256(hash);
+
+    if (!row && !skipUpload) {
+        renderBanner({ kind: "working", message: "Uploading to library…" });
+        row = await uploadLog({
+            file,
+            hash,
+            eventTag: DEFAULT_EVENT_TAG,
+            durationSec: parsed.durationSec,
+        });
+        renderBanner({ kind: "saved", row });
+    } else if (row) {
+        renderBanner({ kind: "exists", row });
+    }
+}
+
+function renderBanner(state) {
+    if (!banner) return;
+    banner.innerHTML = "";
+    banner.className = "library-banner";
+    if (!state) { hide(banner); return; }
+
+    const left = document.createElement("div");
+    left.className = "library-banner-left";
+
+    if (state.kind === "working") {
+        const spin = document.createElement("span");
+        spin.className = "library-banner-spinner";
+        left.appendChild(spin);
+        const txt = document.createElement("span");
+        txt.textContent = state.message;
+        left.appendChild(txt);
+    } else if (state.kind === "saved" || state.kind === "exists") {
+        const icon = document.createElement("span");
+        icon.className = "library-banner-icon ok";
+        icon.textContent = "✓";
+        left.appendChild(icon);
+        const txt = document.createElement("span");
+        txt.innerHTML = state.kind === "saved"
+            ? `Saved to library as <strong>${escapeHtml(state.row.event_tag)}</strong>`
+            : `Already in library as <strong>${escapeHtml(state.row.event_tag)}</strong>`;
+        left.appendChild(txt);
+    } else if (state.kind === "info") {
+        const icon = document.createElement("span");
+        icon.className = "library-banner-icon";
+        icon.textContent = "ⓘ";
+        left.appendChild(icon);
+        const txt = document.createElement("span");
+        txt.textContent = state.message;
+        left.appendChild(txt);
+    } else if (state.kind === "error") {
+        banner.classList.add("bad");
+        const icon = document.createElement("span");
+        icon.className = "library-banner-icon bad";
+        icon.textContent = "!";
+        left.appendChild(icon);
+        const txt = document.createElement("span");
+        txt.textContent = `Library sync failed: ${state.message}`;
+        left.appendChild(txt);
+    }
+
+    banner.appendChild(left);
+
+    const right = document.createElement("div");
+    right.className = "library-banner-right";
+
+    if (state.kind === "saved" || state.kind === "exists") {
+        right.appendChild(buildTagPicker(state.row));
+    }
+    banner.appendChild(right);
+    show(banner);
+}
+
+function buildTagPicker(row) {
+    const wrap = document.createElement("div");
+    wrap.className = "tag-picker";
+
+    const label = document.createElement("span");
+    label.className = "tag-picker-label";
+    label.textContent = "Event:";
+    wrap.appendChild(label);
+
+    const select = document.createElement("select");
+    select.className = "tag-picker-select";
+
+    const tags = new Set(PRESET_EVENT_TAGS);
+    if (row.event_tag) tags.add(row.event_tag);
+    const sorted = Array.from(tags).sort((a, b) => {
+        if (a === "Home") return -1;
+        if (b === "Home") return 1;
+        return a.localeCompare(b);
+    });
+    for (const t of sorted) {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        if (t === row.event_tag) opt.selected = true;
+        select.appendChild(opt);
+    }
+    const newOpt = document.createElement("option");
+    newOpt.value = "__new__";
+    newOpt.textContent = "New tag…";
+    select.appendChild(newOpt);
+
+    const status = document.createElement("span");
+    status.className = "tag-picker-status";
+
+    select.addEventListener("change", async () => {
+        let next = select.value;
+        if (next === "__new__") {
+            const typed = prompt("New event tag (e.g., 2026 Bridgewater Off-Season):", "");
+            if (!typed || !typed.trim()) {
+                select.value = row.event_tag || DEFAULT_EVENT_TAG;
+                return;
+            }
+            next = typed.trim();
+        }
+        if (next === row.event_tag) return;
+        select.disabled = true;
+        status.textContent = "Saving…";
+        try {
+            const updated = await updateEventTag(row.id, next);
+            if (updated) {
+                Object.assign(row, updated);
+            } else {
+                row.event_tag = next;
+            }
+            // Rebuild picker to reflect the new option if it was freeform.
+            renderBanner({ kind: "saved", row });
+        } catch (err) {
+            status.textContent = "Failed";
+            console.error(err);
+            select.value = row.event_tag || DEFAULT_EVENT_TAG;
+        } finally {
+            select.disabled = false;
+        }
+    });
+
+    wrap.appendChild(select);
+    wrap.appendChild(status);
+    return wrap;
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    })[c]);
 }
 
 function renderHeader(file, parsed) {
@@ -175,6 +368,7 @@ function reset() {
     nav.innerHTML = "";
     hide(closeBtn);
     hide(dashboard);
+    hide(banner);
     show(dropzone);
     fileInput.value = "";
 }
